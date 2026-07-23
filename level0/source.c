@@ -15,7 +15,7 @@ int main(int argc, char **argv)
     res = atoi(argv[1]);
     if (res != 423)
     {
-        fwrite("No!\n", 1, 4, stderr);
+        fwrite("No !\n", 5, 1, stderr);
     }
     else
     {
