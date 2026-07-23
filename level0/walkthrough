@@ -14,26 +14,15 @@ On check avec gdb
 On voit un atoi, surement pour l'argument qui est passe a la fonction, suivi d'un cmp (comparaison)
 juste apres entre 0x1a7 (423 en hexadecimal) et $eax (l'argument)
 
+Pour le strdup on voit que l'argument dans le disas est 0x80c5348, si on affiche
+la string avec gdb (x/s 0x80c5348) on obtient "/bin/sh"
+On sait donc que ce sera l'argument de strdup.
+
 Donc essayons de matcher l'argument avec le 423.
 
 -> ./level0 423
 
-Bim, on est dans un subshell.
+Bim, on est dans un subshell avec l'id level01.
 
-On a pas les droits de lecture et on se trouve toujours a /home/user/level0 pourtant quand on fait
-
--> whoami
-
-on voit qu'on est connecte en tant que : level1.
-
-Allons donc dans le home de level1 fouiner un peu
-
--> cd /home/user/level1
--> ls -a
-
-Il y'a un fichier cache nomme .pass
-
--> cat .pass
-
-et tada on a le password.
+Comme dit dans le sujet on fait ; cat /home/user/level1/.pass et on obtient le flag.
 
