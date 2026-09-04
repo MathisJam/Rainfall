@@ -1,0 +1,30 @@
+GDB -> levele3 -> info functions
+
+Il ya deux fonctions; main et v(), dans la fonction main il n'y a juste un appel a v().
+Donc tout va se passer dans v()
+
+Disas main -> On voit l'utilisation de fgets() avec un buffer de 512.
+Maintenant que ca utilise fgets et pas gets on ne peut plus exploiter l'overflow ( mince )
+Il va donc falloir trouver autre chose.
+
+Il y a egalement un appel system ! cependant il y a une comparaison (if) avant a passer pour pouvoir acceder a system. :
+
+   0x080484da <+54>:	mov    0x804988c,%eax
+   0x080484df <+59>:	cmp    $0x40,%eax
+
+   On voit que on compare 0x40 (64 en hex) avec %eax qui lui equivaut a la valeur de ce qu'il ya a l'adresse 0x804988c
+   Spoiler, y'a rien a 0x804988c on peut verifier avec x/w, x/wd, x/s.
+
+Il faut donc trouver une vulnerabilite pour pouvoir changer la valeur de 0x804988c et la mettre a 0x40 pour que la comparaison passe.
+
+fgets() est protege de l'overflow, le reste est dans le if(), donc il nous reste une fonction : printf().
+
+Le printf() sert a renvoyer la phrase qu'on ecrit dans le programme.
+SAUF que le printf() interprete encore les formats qu'on lui donne (%x, %X, %p...)
+
+Il faut donc qu'on utilise le %n qui permet de stocker le nombre de caractere du printf pour le stocker dans une adresse memoire.
+
+Donc, mettre l'adresse de 0x804988c en little-edian pour pouvoir la modifier, et ensuite mettre du padding pour arriver a 64 caracteres (0x40), suivi du %n !
+
+python -c 'import sys; sys.stdout.write("\x8c\x98\x04\x08" + "A"*60 + "%4$n\n")' > /tmp/test
+cat /tmp/test - | ./level3

