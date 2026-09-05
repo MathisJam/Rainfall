@@ -10,6 +10,6 @@ int run ()
 int main()
 {
     char buffer[64];
-    gets(buffer); // deprecated donc faut utiliser fgets pour compiler : fgets(buffer, sizeof(buffer), stdin)
+    gets(buffer); // deprecated donc faut utiliser fgets pour compiler : fgets(buffer, sizeof(buffer), stdout)
     return 0;
 }

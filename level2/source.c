@@ -12,8 +12,7 @@ char *p()
     ret = (unsigned int)(uintptr_t)__builtin_return_address(0); // builtin = void * -> uintptr_t = entier (taille de l'adresse) -> unsigned int -> entier 32 bits
 
     fflush(stdout);
-    gets(buffer); // deprecated donc faut utiliser fgets pour compiler : fgets(buffer, sizeof(buffer), stdin)
-    char *dup;
+    gets(buffer); // deprecated donc faut utiliser fgets pour compiler : fgets(buffer, sizeof(buffer), stdout)
 
     if ((ret & 0xb0000000) == 0xb0000000)
     {
@@ -21,9 +20,7 @@ char *p()
         exit(1);
     }
     puts(buffer);
-
-    dup = strdup(buffer);
-    return dup;
+    return strdup(buffer);
 
 }
 

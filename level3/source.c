@@ -1,19 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int i;
+
 int v()
 {
     char buffer[512];
-    char *str;
-    str = fgets(buffer, sizeof(buffer), stdin);
 
-    int i;
-    i = printf("\n");
+    fgets(buffer, 512, stdin);
+    printf(buffer);
     if (64 == i)
     {
         system("/bin/sh");
         char *wait = "Wait what ?!\n";
-        fwrite(wait, sizeof(wait), sizeof(wait), stdin);
+        fwrite("Wait what ?!\n", 12, 1, stdout);
     }
     return 0;
 }
