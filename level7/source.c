@@ -30,8 +30,8 @@ int main(int argc, char **argv) {
     p4 = malloc(8);
     p3[1] = p4;
 
-    strcpy(p2, argv[1]);
-    strcpy(p4, argv[2]);
+    strcpy(p1[1], argv[1]);
+    strcpy(p3[1], argv[2]);
 
     FILE * file;
     file = fopen("/home/user/level8/.pass", "r");

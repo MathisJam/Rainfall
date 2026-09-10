@@ -31,6 +31,28 @@ On prepare ensuite les arguments du deuxieme strcpy, soit le deuxieme bloc mallo
 
 Donc : strcpy(p3[1], argv[2]);
 
+il y a une variable C qui est le buffer. on voit dans le fgets() que c est sa destination, c'est
+a dire que tout ce que fgets() va ecrire ira dans C.
+avant ce fgets() il y a le fopen() qui fait "/home/user/level8/.pass"
+et fgets utilise justement le file que renvoie fopen() comme source!
+
+Ca veut donc dire que le "/home/user/level8/.pass" est stocke dans C.
+Il faut donc afficher C, et heureusement c'est ce que fait la fonction m() avec printf("%s - $d\n", c ,t );
+
+Il faut donc utiliser les strcpy pour reussir a ecraser la valeur d'une adresse cible pour ecrire celle de m()
+et donc rentrer dans la fonction m().
+
+La seule fonction inutile et qu'on peut overwrite est le puts(), on cherche donc son adresse GOT et on la prend pour cible.
+
+puts@GOT = 0x08049928
+dernier chunk utilise du strcpy : p3[1] = 0x0804a02c
+
+p/d 0x0804a02c - 0x0804a018 = $4 = 20, il faut donc faire un padding de 20 pour atteindre p3[1] et ecrire l'adresse de puts(), tout ca dans argv[1]
+
+Donc p3[1] = putsGOT, puis dans le deuxieme strcpy
+on a juste a mettre en deuxieme argument l'adresse de m(), pour qu'il la copie dans p3[1] et change l'adresse de puts - > m().
+
+
 
 NOTE :
 
